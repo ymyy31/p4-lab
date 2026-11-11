@@ -1,0 +1,23 @@
+------- Create forwarding loop -------
+sh ./p4cli s2 "table_modify MyIngress.myTunnel_exact MyIngress.myTunnel_forward 2 1"
+
+Output:
+Done
+Modifying entry 2 for exact match table MyIngress.myTunnel_exact
+
+------- Send tunnelled packet with hop limit 8 -------
+h1 python3 send.py 10.14.0.3 "loop after" --tunnel 3 --hops 8
+
+Packet was sent with destination id:3 , initial hop limit:8, inner IPv4 TTL: 64
+
+------- Switch processing counts -------
+1. First check
+logs/s1.txt:229
+logs/s2.txt:225
+
+2. Second check
+logs/s1.txt:229
+logs/s2.txt:225
+
+------- Analysis -------
+The packet was successfully forwarded 7 times. On its 8th switch processing event, the hop limit was decremented to 0 and the packet was dropped. This shows that it prevents an endless forwarding loop.
