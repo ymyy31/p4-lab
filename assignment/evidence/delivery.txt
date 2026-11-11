@@ -1,0 +1,21 @@
+---------- Tunnelled packet to h2 ----------
+h1 python3 send.py 10.14.0.2 "hop test" --tunnel 2 --hops 8
+
+Output from logs/h2.txt:
+Listening on h2-eth0...
+Received (tunnelled, dst_id=2, hop_limit=6) from 10.14.0.1 to 10.14.0.2, TTL 64: 'hop test'
+
+---------- Tunnelled packet to h3 ----------
+h1 python3 send.py 10.14.0.3 "hop test h3" --tunnel 3 --hops 8
+
+Output from logs/h3.txt:
+Listening on h3-eth0...
+Received (tunnelled, dst_id=3, hop_limit=6) from 10.14.0.1 to 10.14.0.3, TTL 64: 'hop test h3'
+
+---------- IPv4 Connectivity ----------
+h1 ping -c 2 h3
+
+Output:
+2 packets transmitted, 2 received, 0% packet loss
+64 bytes from 10.14.0.3: icmp_seq=1 ttl=62
+64 bytes from 10.14.0.3: icmp_seq=2 ttl=62

@@ -1,0 +1,39 @@
+------- Mixed-version configuration -------
+Started the topology using the new program(s1) and original program(s2):
+python3 topo.py --id 2614 --s2-program tunnel_v1.p4
+
+------- Prediction -------
+The old s2 program expects a 4-byte tunner header, while the new s1 program sends a 5-byte header containing an additional 8-bit hop_limit field. My prediction is that s2 would misinterpret the packet as it does not recognise the additional byte.
+
+------- Tunnel packet delivery test -------
+h1 python3 send.py 10.14.0.3 "mixed retry" --tunnel 2
+
+The old s2 program successfully matched destination ID 0002 and transmitted the packet through port 2.
+However, the capture on h2 showed that the packet was no correctly aligned for IPv4 parsing.
+
+Captured bytes:
+1212 0800 0002 0745 0000 2700 ...
+
+The old s2 parser expected the IPv4 header immediately after the 4-byte tunnel header. Instead, it treated the hop-limit byte as the beginning of the IPv4 header. The packet reached h2 but its header was misinterpreted.
+
+------- Mixed-version loop test -------
+Before sending:
+logs/s1.txt:231
+logs/s2.txt:227
+
+Sent:
+h1 python3 send.py 10.14.0.3 "mixed loop" --tunnel 3 --hops 8
+
+After sending:
+logs/s1.txt:240
+logs/s2.txt:235
+
+After another 5 seconds:
+logs/s1.txt:240
+logs/s2.txt:235
+
+The counts stopped increasing. This confirms that the loop does not continue.
+The new s1 program enforced the hop limit, while the old s2 program did not. The packet still returned to s1, where the hop limit was decremented until the packet was dropped
+
+------- Conclusion -------
+The mixed-version test showed that adding a field to a packet header without ensuring backward compatibility can cause parsing errors. Although the hop limit still stopped the loop, the header change was not fully compatible with the old switch program.

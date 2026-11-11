@@ -1,0 +1,19 @@
+--------- Modified s2 table entry ---------
+Dumping entry 0x2
+Match key:
+* myTunnel.dst_id     : EXACT     0003
+Action entry: MyIngress.myTunnel_forward - 01
+
+--------- First packet count ---------
+sh grep -c "Processing packet received" logs/s1.txt logs/s2.txt
+
+Output:
+logs/s1.txt:396
+logs/s2.txt:394
+
+--------- Second packet count ---------
+grep -c "Processing packet received" logs/s1.txt logs/s2.txt
+
+Output:
+logs/s1.txt:1269
+logs/s2.txt:1268
